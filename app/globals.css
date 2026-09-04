@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* GümüşAğ marka token'ları — gumusev-platform/src/app/globals.css'ten
+     birebir (canonical navy #172645, #223252 ölü token kullanılmaz). */
+  --color-navy: #172645;
+  --color-navy-dark: #0f1a30;
+  --color-turquoise: #14b8a6;
+  --color-silver: #C0C2C5;
+  --color-silver-light: #E1E3E6;
+  --color-silver-mist: #F8F8F8;
+  --color-dark: #1A1A1A;
+
+  /* Vitrin sıcak yüzey — temsili katalog kartlarının krem zemini
+     (GümüşEv Aile Paneli'ndeki #F8F7F4 kart zemininin aynısı). */
+  --color-warm-surface: #F8F7F4;
+
+  --font-serif: var(--font-cormorant);
+  --font-sans: var(--font-inter);
+}
+
+body {
+  background: var(--color-silver-mist);
+  color: var(--color-dark);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
