@@ -4,9 +4,9 @@ import { CATEGORY_LABELS, getProductsByCategory, type CategorySlug } from '@/lib
 
 const CHAIN = [
   { step: '1', title: 'Değerlendirme', owner: 'GümüşEV', desc: 'Evinizdeki riskleri ücretsiz taramayla belirleyin.' },
-  { step: '2', title: 'Çözüm', owner: 'YaslanmaDostu', desc: 'İhtiyaca uygun çözüm türlerini keşfedin.' },
-  { step: '3', title: 'Yerinde Uygulama', owner: 'Yaşlanma Dostu Tadilat', desc: 'Gerektiğinde saha ekibiyle uygulamaya geçin.' },
-  { step: '4', title: 'Takip', owner: 'Aile Paneli', desc: 'İlerlemeyi ailenizle birlikte takip edin.' },
+  { step: '2', title: 'Çözüm', owner: 'YaslanmaDostu', desc: 'İhtiyacınıza karşılık gelen çözüm türlerini burada görün.' },
+  { step: '3', title: 'Yerinde Uygulama', owner: 'Yaşlanma Dostu Tadilat', desc: 'Yerinde uygulama gerektiren çözümler için keşif ve hizmet yolu sunulur.' },
+  { step: '4', title: 'Takip', owner: 'Aile Paneli', desc: 'Hangi adımın yapıldığını ailenizle birlikte takip edin.' },
 ];
 
 const CATEGORIES: { slug: CategorySlug | 'baglantili-cihazlar'; comingSoon?: boolean }[] = [
@@ -34,10 +34,33 @@ export default async function HomePage({
             GümüşEV neden ihtiyacınız olduğunu söyler;<br className="hidden sm:block" /> YaslanmaDostu o ihtiyacın somut çözümünü gösterir.
           </h1>
           <p className="text-silver-light text-[15px] sm:text-[16px] leading-relaxed mb-8 max-w-2xl mx-auto">
-            Yaşlanma dostu ev için seçilmiş çözüm türlerini keşfedin. Fiyat, stok veya sipariş bilgisi içermez —
-            bu bir çözüm vitrinidir.
+            Yaşlanma dostu ev için seçilmiş çözüm türlerini keşfedin. Burada marka, fiyat veya sipariş yoktur — çünkü önce doğru çözümü göstermek istiyoruz, satmak değil. Bu bir çözüm vitrinidir.
           </p>
           <GumusevBridge fromGumusev={fromGumusev} />
+          <Link
+            href="/hakkinda"
+            className="mt-4 inline-block text-[13px] text-silver-light/80 underline underline-offset-4 hover:text-white transition-colors"
+          >
+            Bu site nedir?
+          </Link>
+        </div>
+      </section>
+
+      {/* BU SİTE NEDİR? — 5 Eyl 2026 narrative patch, CTO final copy overrides ile */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div>
+            <p className="font-serif text-[16px] font-semibold text-navy mb-1.5">Bu bir çözüm vitrini</p>
+            <p className="text-[13px] text-dark/65 leading-relaxed">Bu sürüm, yaşlanma dostu ev çözümlerinin türlerini gösterir; satış ve sipariş içermez.</p>
+          </div>
+          <div>
+            <p className="font-serif text-[16px] font-semibold text-navy mb-1.5">Ürünler neden temsili?</p>
+            <p className="text-[13px] text-dark/65 leading-relaxed">Önce hangi çözüm türünün ihtiyaca karşılık geldiğini gösteriyoruz. Marka, model, fiyat ve sağlayıcı seçimi sonraki katmandır.</p>
+          </div>
+          <div>
+            <p className="font-serif text-[16px] font-semibold text-navy mb-1.5">Nereden geliyor?</p>
+            <p className="text-[13px] text-dark/65 leading-relaxed">Buradaki çözüm türleri, GümüşEV ev değerlendirmesinin işaret ettiği ihtiyaç alanlarına karşılık gelir.</p>
+          </div>
         </div>
       </section>
 
@@ -93,7 +116,7 @@ export default async function HomePage({
                   </div>
                   <p className="text-[13px] text-dark/60 leading-relaxed">
                     {cat.comingSoon
-                      ? 'Evi dinleyen bağlantılı cihaz çözümleri — bu kategori henüz ürün vitrinine açılmadı.'
+                      ? 'Evden gelen sürekli sinyalleri takip eden çözümler ekosistemin bir sonraki katmanı. Bu kategori henüz vitrine açılmadı.'
                       : 'Kategoriyi görüntüleyin →'}
                   </p>
                 </Link>
@@ -107,7 +130,7 @@ export default async function HomePage({
       <section className="max-w-3xl mx-auto px-4 sm:px-6 py-16 text-center">
         <p className="font-serif text-[20px] font-semibold text-navy mb-3">Önce evinizi değerlendirin</p>
         <p className="text-[13.5px] text-dark/60 mb-6 leading-relaxed">
-          Hangi çözüm türünün size uygun olduğunu anlamanın en iyi yolu, GümüşEV'in ücretsiz ev değerlendirmesiyle başlamaktır.
+          Buradaki ürünler temsilidir, ancak GümüşEV değerlendirmesi gerçek ve ücretsizdir. Hangi çözüm türünün size uygun olduğunu anlamanın en iyi yolu oradan başlamaktır.
         </p>
         <GumusevBridge fromGumusev={fromGumusev} />
       </section>

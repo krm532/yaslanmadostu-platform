@@ -3,10 +3,11 @@
 // (footer) ayrı bileşenlerde. CTO override 4: global bant kısa ve sakin
 // kalır ("TEMSİLİ VİTRİN"), sitenin oyuncak/demo dashboard hissi vermemesi
 // için büyük rozet/renk patlaması YOK.
+// 5 Eyl 2026: bant tanımlandı, boyut artırılmadı.
 export default function DisclosureBand() {
   return (
     <div className="bg-navy text-silver-light text-center text-[11px] font-semibold uppercase tracking-widest py-1.5">
-      Temsili Vitrin
+      Temsili Vitrin — ürünler örnektir, satış yapılmaz
     </div>
   );
 }

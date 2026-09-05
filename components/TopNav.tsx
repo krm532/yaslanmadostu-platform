@@ -40,6 +40,33 @@ export default function TopNav() {
           </Link>
         </nav>
       </div>
+      {/* 5 Eyl 2026 — mobil erişim: md:hidden altında masaüstüyle aynı hedefler,
+          hamburger/JS yok (server component, state yok). */}
+      <div className="md:hidden overflow-x-auto px-4 sm:px-6 pb-3">
+        <div className="flex items-center gap-4 whitespace-nowrap">
+          {CATEGORIES.map((c) => (
+            <Link
+              key={c.slug}
+              href={`/kategori/${c.slug}`}
+              className="text-[12.5px] text-dark/70 hover:text-turquoise transition-colors"
+            >
+              {c.label}
+            </Link>
+          ))}
+          <Link
+            href="/kategori/baglantili-cihazlar"
+            className="text-[12.5px] text-dark/70 hover:text-turquoise transition-colors"
+          >
+            Bağlantılı Cihazlar
+          </Link>
+          <Link
+            href="/hakkinda"
+            className="text-[12.5px] text-dark/70 hover:text-turquoise transition-colors"
+          >
+            Hakkında
+          </Link>
+        </div>
+      </div>
     </header>
   );
 }
