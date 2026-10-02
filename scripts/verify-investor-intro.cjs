@@ -58,7 +58,8 @@ async function test(name, fn) {
     const page = await context.newPage();
     const dialog = page.locator('#investor-intro');
     const close = page.getByRole('button', { name: 'Tanıtımı kapat' });
-    const reopen = page.getByRole('button', { name: 'Ticaret vizyonu' });
+    // The popup has no reopen control; a fresh page load is the only way it opens again.
+    const reopenByReload = async (target = page) => { await target.reload(); await target.locator('#investor-intro').waitFor({ state: 'visible' }); };
     await test('First visit opens once, images load, page scroll locks', async () => {
       const response = await page.goto(baseUrl + '/');
       assert.equal(response.status(), 200);
@@ -67,10 +68,31 @@ async function test(name, fn) {
       assert.equal(await page.evaluate(() => document.body.style.overflow), 'hidden');
       assert.equal(await close.evaluate(element => element === document.activeElement), true);
       assert.equal(await page.locator('[data-nextjs-dialog]').count(), 0);
+      assert.equal(await dialog.evaluate(element => element.open && element.matches(':modal')), true, 'Popup is open as a modal on first visit');
+      assert.equal(await page.getByRole('button', { name: 'Ticaret vizyonu' }).count(), 0, 'No reopen button exists');
       assert.equal(await page.locator('#investor-intro-title').textContent(), 'İlk Günden İyileştirmelere Başlayın.');
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
       assert.equal(await dialog.evaluate(element => element.scrollWidth <= element.clientWidth), true);
       await checkCardLabels(page);
+    });
+    await test('Popup is already open at first paint when scripts are slow or blocked', async () => {
+      const blocked = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+      await blocked.route(/\.js(\?.*)?$/, route => route.abort());
+      const blockedPage = await blocked.newPage();
+      await blockedPage.goto(baseUrl + '/', { waitUntil: 'domcontentloaded' });
+      const blockedDialog = blockedPage.locator('#investor-intro');
+      await blockedDialog.waitFor({ state: 'visible' });
+      const box = await blockedDialog.boundingBox();
+      assert.ok(box.x >= 0 && box.y >= 0 && box.x + box.width <= 1440 && box.y + box.height <= 900, 'Pre-script popup fits the viewport');
+      assert.ok(Math.abs(box.x + box.width / 2 - 720) < 2 && Math.abs(box.y + box.height / 2 - 450) < 2, 'Pre-script popup is centered');
+      assert.equal(await blockedPage.getByRole('heading', { name: 'İlk Günden İyileştirmelere Başlayın.' }).isVisible(), true);
+      await blocked.close();
+      const noScript = await browser.newContext({ viewport: { width: 1440, height: 900 }, javaScriptEnabled: false });
+      const noScriptPage = await noScript.newPage();
+      await noScriptPage.goto(baseUrl + '/');
+      assert.equal(await noScriptPage.locator('#investor-intro').isVisible(), false, 'Without scripting the popup is hidden so it cannot trap the visitor');
+      assert.equal(await noScriptPage.getByRole('heading', { level: 1 }).textContent(), 'Çok yakında burada.İhtiyaçtan çözüme tek adres.');
+      await noScript.close();
     });
     await test('Native dialog keeps keyboard focus inside in both directions', async () => {
       await page.keyboard.press('Shift+Tab');
@@ -80,20 +102,18 @@ async function test(name, fn) {
         assert.equal(await dialog.evaluate(element => element.contains(document.activeElement)), true);
       }
     });
-    await test('Escape closes, restores scroll and focus, reopen works', async () => {
+    await test('Escape closes and restores scroll; a reload opens it again', async () => {
       await page.keyboard.press('Escape');
       await dialog.waitFor({ state: 'hidden' });
-      // The native close event (scroll/focus restore) is dispatched asynchronously after the dialog hides.
-      await page.waitForFunction(() => document.body.style.overflow === '' && document.activeElement && document.activeElement.textContent.includes('Ticaret vizyonu'), null, { timeout: 3000 });
+      // The native close event (scroll restore) is dispatched asynchronously after the dialog hides.
+      await page.waitForFunction(() => document.body.style.overflow === '', null, { timeout: 3000 });
       assert.equal(await page.evaluate(() => document.body.style.overflow), '');
-      assert.equal(await reopen.evaluate(element => element === document.activeElement), true);
-      await reopen.click();
-      await dialog.waitFor({ state: 'visible' });
+      await reopenByReload();
     });
     await test('Close button and backdrop dismiss', async () => {
       await close.click();
       await dialog.waitFor({ state: 'hidden' });
-      await reopen.click();
+      await reopenByReload();
       await page.mouse.click(10, 10);
       await dialog.waitFor({ state: 'hidden' });
     });
@@ -118,7 +138,7 @@ async function test(name, fn) {
       await fresh.close();
     });
     await test('Explore closes and moves focus to existing solution groups', async () => {
-      await reopen.click();
+      await reopenByReload();
       await page.getByRole('button', { name: 'Çözüm gruplarını keşfet' }).click();
       await dialog.waitFor({ state: 'hidden' });
       await page.waitForFunction(() => document.activeElement.id === 'cozum-seckisi');
@@ -136,7 +156,7 @@ async function test(name, fn) {
       await dialog.waitFor({ state: 'visible' });
       await close.click();
       assert.equal(await page.locator('#cozum-seckisi').count(), 1);
-      await reopen.click();
+      await reopenByReload();
       await dialog.waitFor({ state: 'visible' });
       await close.click();
     });
@@ -150,6 +170,7 @@ async function test(name, fn) {
         assert.ok(!body.includes(text), 'Old storefront text absent: ' + text);
       }
       assert.equal(await target.locator('a[href^="/kategori"], a[href^="/urun"], a[href^="/hakkinda"], header, footer').count(), 0, 'No old storefront links, header or footer on home');
+      assert.ok(!body.includes('Ticaret vizyonu'), 'Reopen button text absent');
       assert.equal(await target.getByRole('heading', { level: 1 }).count(), 1, 'Single h1');
       assert.equal(await target.getByRole('link', { name: 'Bu arada evinizi GümüşEV ile tarayın' }).getAttribute('href'), 'https://www.gumusev.org/tr');
       assert.equal(await target.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'No horizontal overflow');
@@ -161,22 +182,22 @@ async function test(name, fn) {
       await close.click();
       await dialog.waitFor({ state: 'hidden' });
       await assertComingSoon(page);
-      await reopen.click();
+      await reopenByReload();
       await page.keyboard.press('Escape');
       await dialog.waitFor({ state: 'hidden' });
-      await reopen.click();
+      await reopenByReload();
       await page.mouse.click(10, 10);
       await dialog.waitFor({ state: 'hidden' });
-      await reopen.click();
+      await reopenByReload();
       await page.getByRole('button', { name: 'Kapat', exact: true }).click();
       await dialog.waitFor({ state: 'hidden' });
       await assertComingSoon(page);
-      await reopen.click();
+      await reopenByReload();
       await dialog.waitFor({ state: 'visible' });
       await close.click();
     });
     await test('Explore lands focus on the prepared solution groups section', async () => {
-      await reopen.click();
+      await reopenByReload();
       await page.getByRole('button', { name: 'Çözüm gruplarını keşfet' }).click();
       await dialog.waitFor({ state: 'hidden' });
       await page.waitForFunction(() => document.activeElement.id === 'cozum-seckisi');
@@ -242,7 +263,7 @@ async function test(name, fn) {
     });
     await test('320px short mobile remains usable without horizontal overflow', async () => {
       await mobilePage.setViewportSize({ width: 320, height: 568 });
-      await mobilePage.getByRole('button', { name: 'Ticaret vizyonu' }).click();
+      await reopenByReload(mobilePage);
       assert.equal(await mobilePage.locator('dialog').evaluate(element => element.scrollTop), 0);
       assert.equal(await mobilePage.locator('dialog').evaluate(element => element.scrollWidth <= element.clientWidth), true);
       assert.equal(await mobilePage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);

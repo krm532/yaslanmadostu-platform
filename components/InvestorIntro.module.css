@@ -12,7 +12,8 @@
   box-shadow: 0 30px 100px #07122255;
 }
 .dialog::backdrop { background: #0f1a30a3; backdrop-filter: blur(7px); }
-.dialog[open] { animation: enter 280ms ease-out; }
+/* Server-rendered open copy before scripts load: centered like a modal, dimmed by a spread shadow. */
+.dialog[open]:not(:modal) { position: fixed; inset: 0; height: fit-content; z-index: 40; box-shadow: 0 30px 100px #07122255, 0 0 0 100vmax #0f1a30a3; }
 .shell { position: relative; }
 .main { display: grid; grid-template-columns: 1.13fr 1fr; }
 .story { padding: 32px 42px 28px; }
@@ -59,10 +60,7 @@
 .journey strong { display: block; font-size: 12px; margin-bottom: 3px; }
 .journey span:not(.stepNumber) { display: block; font-size: 10px; color: #536071; }
 .journey small { display: block; font-size: 9px; color: #6b7781; margin-top: 5px; line-height: 1.5; }
-.reopen { position: fixed; bottom: 20px; left: 20px; z-index: 30; display: flex; align-items: center; gap: 8px; background: #faf9f5; color: #172645; padding: 11px 16px; border: 1px solid #17264525; border-radius: 100px; box-shadow: 0 4px 20px #17264516; cursor: pointer; font-size: 11px; font-weight: 600; }
-.reopen:hover { background: #e9f0ec; }
-.reopenDot { width: 6px; height: 6px; border-radius: 50%; background: #07998d; }
-.dialog button:focus-visible, .reopen:focus-visible { outline: 3px solid #087c77; outline-offset: 4px; }
+.dialog button:focus-visible { outline: 3px solid #087c77; outline-offset: 4px; }
 @keyframes enter { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 900px) and (min-width: 641px) {
   .dialog { width: calc(100vw - 40px); }
@@ -110,6 +108,5 @@
   .journey strong { font-size: 11px; }
   .journey span:not(.stepNumber) { font-size: 9px; }
   .journey small { font-size: 8px; }
-  .reopen { left: 12px; bottom: 12px; }
 }
 @media (prefers-reduced-motion: reduce) { .dialog[open] { animation: none; } .primary { transition: none; } }

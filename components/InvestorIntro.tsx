@@ -20,10 +20,10 @@ const JOURNEY = [
 
 export default function InvestorIntro() {
   const dialog = useRef<HTMLDialogElement>(null);
-  const trigger = useRef<HTMLButtonElement>(null);
   const previousFocus = useRef<HTMLElement | null>(null);
   const previousOverflow = useRef<string | null>(null);
   const destination = useRef<HTMLElement | null>(null);
+  const upgrading = useRef(false);
 
   const restorePage = useCallback(() => {
     if (previousOverflow.current !== null) {
@@ -34,9 +34,15 @@ export default function InvestorIntro() {
 
   const open = useCallback(() => {
     const element = dialog.current;
-    if (!element || element.open) return;
+    if (!element || element.matches(':modal')) return;
     previousFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     previousOverflow.current = document.body.style.overflow;
+    // The server sends the dialog already open so it is visible from first paint, before any
+    // script loads. Upgrade that non-modal copy to a modal one; its queued close event is ignored.
+    if (element.open) {
+      upgrading.current = true;
+      element.close();
+    }
     element.showModal();
     element.scrollTop = 0;
     document.body.style.overflow = 'hidden';
@@ -57,6 +63,10 @@ export default function InvestorIntro() {
   }
 
   function onClose() {
+    if (upgrading.current) {
+      upgrading.current = false;
+      return;
+    }
     restorePage();
     const target = destination.current;
     if (target) {
@@ -65,17 +75,16 @@ export default function InvestorIntro() {
       destination.current = null;
     } else {
       const prior = previousFocus.current;
-      (prior && prior !== document.body && prior.isConnected ? prior : trigger.current)?.focus({ preventScroll: true });
+      if (prior && prior !== document.body && prior.isConnected) prior.focus({ preventScroll: true });
     }
   }
 
   return (
     <>
-      <button ref={trigger} className={styles.reopen} type="button" onClick={open} aria-haspopup="dialog" aria-controls="investor-intro">
-        <span className={styles.reopenDot} aria-hidden="true" /> Ticaret vizyonu
-      </button>
+      <noscript><style>{'#investor-intro{display:none!important}'}</style></noscript>
       <dialog
         ref={dialog}
+        open
         id="investor-intro"
         className={styles.dialog}
         aria-labelledby="investor-intro-title"
