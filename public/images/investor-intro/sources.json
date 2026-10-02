@@ -1,0 +1,57 @@
+[
+  {
+    "asset": "medication-dispenser.webp",
+    "source": "slayt12.png",
+    "crop": [
+      48,
+      452,
+      227,
+      609
+    ],
+    "use": "Illustrative product/service family from supplied pitch, no SKU/availability claim"
+  },
+  {
+    "asset": "sleep-sensor.webp",
+    "source": "slayt12.png",
+    "crop": [
+      244,
+      451,
+      420,
+      611
+    ],
+    "use": "Illustrative product/service family from supplied pitch, no SKU/availability claim"
+  },
+  {
+    "asset": "hip-airbag.webp",
+    "source": "slayt12.png",
+    "crop": [
+      436,
+      451,
+      612,
+      610
+    ],
+    "use": "Illustrative product/service family from supplied pitch, no SKU/availability claim"
+  },
+  {
+    "asset": "daily-solutions.webp",
+    "source": "slayt12.png",
+    "crop": [
+      626,
+      451,
+      806,
+      611
+    ],
+    "use": "Illustrative product/service family from supplied pitch, no SKU/availability claim"
+  },
+  {
+    "asset": "bathroom-adaptation.webp",
+    "source": "slayt12.png",
+    "crop": [
+      1057,
+      453,
+      1230,
+      611
+    ],
+    "use": "Illustrative product/service family from supplied pitch, no SKU/availability claim"
+  }
+]

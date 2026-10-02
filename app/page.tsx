@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import InvestorIntro from '@/components/InvestorIntro';
 import GumusevBridge from '@/components/GumusevBridge';
 import { CATEGORY_LABELS, getProductsByCategory, type CategorySlug } from '@/lib/catalog';
 
@@ -26,6 +27,7 @@ export default async function HomePage({
 
   return (
     <div>
+      <InvestorIntro />
       {/* HERO */}
       <section className="bg-navy text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-16 sm:py-24 text-center">
@@ -84,7 +86,7 @@ export default async function HomePage({
       </section>
 
       {/* KATEGORİLER — CTO override 3: "ilk seçki", tüm katalog iddiası yok */}
-      <section className="bg-warm-surface">
+      <section id="cozum-seckisi" tabIndex={-1} className="bg-warm-surface">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-14">
           <h2 className="font-serif text-[22px] font-semibold text-navy text-center mb-2">
             İlk çözüm seçkimizle başlayın
