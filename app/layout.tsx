@@ -4,6 +4,7 @@ import './globals.css';
 import DisclosureBand from '@/components/DisclosureBand';
 import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
+import HomeChromeGate from '@/components/HomeChromeGate';
 
 const cormorantGaramond = Cormorant_Garamond({
   variable: '--font-cormorant',
@@ -39,10 +40,14 @@ export default function RootLayout({
   return (
     <html lang="tr">
       <body className={`${cormorantGaramond.variable} ${inter.variable} font-sans`}>
-        <DisclosureBand />
-        <TopNav />
+        <HomeChromeGate>
+          <DisclosureBand />
+          <TopNav />
+        </HomeChromeGate>
         <main>{children}</main>
-        <Footer />
+        <HomeChromeGate>
+          <Footer />
+        </HomeChromeGate>
       </body>
     </html>
   );

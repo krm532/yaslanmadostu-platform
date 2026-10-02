@@ -122,7 +122,7 @@ export default function InvestorIntro() {
               <p className={styles.groups}>GümüşEV taramasında belirlenen ihtiyaçların, burada uygun ürün ve çözümlerin <strong>satın alınmasına dönüşmesini hedefliyoruz.</strong></p>
               <div className={styles.actions}>
                 <button className={styles.primary} type="button" onClick={explore}>Çözüm gruplarını keşfet <span aria-hidden="true">↗</span></button>
-                <button className={styles.secondary} type="button" onClick={() => dialog.current?.close()}>Siteyi incele</button>
+                <button className={styles.secondary} type="button" onClick={() => dialog.current?.close()}>Kapat</button>
               </div>
               <p className={styles.status}><strong>Bugün çözüm vitrini.</strong> Ürün ve hizmet satışı ile cihaz entegrasyonları gelecek vizyonumuz.</p>
             </div>

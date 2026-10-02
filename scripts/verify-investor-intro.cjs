@@ -15,12 +15,12 @@ const results = [];
 const errors = [];
 const legacyIssues = [];
 async function checkCardLabels(page) {
-  const logo = page.getByAltText('Yaşlanma Dostu — Değişen İhtiyaçlara Uygun Çözümler', { exact: true });
+  const logo = page.locator('dialog').getByAltText('Yaşlanma Dostu — Değişen İhtiyaçlara Uygun Çözümler', { exact: true });
   assert.equal(await logo.count(), 1);
   assert.equal(await logo.evaluate(element => Math.abs(element.width / element.height - 2883 / 1453) < 0.02), true, 'Original logo aspect ratio preserved');
   const titles = ['Uyku Takip ve Düşme Uyarı Sistemleri', 'Hızlı Risk Azaltma Çözümleri'];
   for (const title of titles) {
-    const image = page.getByAltText(title, { exact: true });
+    const image = page.locator('dialog').getByAltText(title, { exact: true });
     assert.equal(await image.count(), 1);
     const figure = image.locator('..');
     const caption = figure.locator('figcaption');
@@ -131,7 +131,7 @@ async function test(name, fn) {
       assert.equal(productResponse.status(), 200);
       assert.equal(await page.getByRole('heading', { level: 1 }).textContent(), 'Kaymaz Banyo Paspası');
     });
-    await test('Assessment referral also opens; existing referral content remains', async () => {
+    await test('Assessment referral also opens; coming-soon page remains behind it', async () => {
       await page.goto(baseUrl + '/?source=gumusev');
       await dialog.waitFor({ state: 'visible' });
       await close.click();
@@ -139,6 +139,84 @@ async function test(name, fn) {
       await reopen.click();
       await dialog.waitFor({ state: 'visible' });
       await close.click();
+    });
+    const assertComingSoon = async target => {
+      // textContent ignores text-transform (the eyebrow is rendered uppercase); the dialog is excluded.
+      const body = await target.evaluate(() => { const copy = document.body.cloneNode(true); copy.querySelectorAll('dialog, script, style').forEach(node => node.remove()); return copy.textContent; });
+      for (const text of ['Çok yakında burada.', 'İhtiyaçtan çözüme tek adres.', 'GümüşEV ekosisteminin çözüm vitrini', 'Hazırlanan çözüm grupları', 'Satış henüz başlamadı. Ürünler ve hizmetler hazır olduğunda bu sayfa açılacak.', 'Bu arada evinizi GümüşEV ile tarayın', 'Üründen yerinde uygulamaya', 'Aydınlatma, banyo ve erişilebilir dönüşüm']) {
+        assert.ok(body.includes(text), 'Coming-soon text present: ' + text);
+      }
+      for (const text of ['Temsili Vitrin', 'İlk çözüm seçkimizle başlayın', 'Banyo Güvenliği', 'Bu site nedir', 'Bağlantılı Cihazlar', 'Önce evinizi değerlendirin']) {
+        assert.ok(!body.includes(text), 'Old storefront text absent: ' + text);
+      }
+      assert.equal(await target.locator('a[href^="/kategori"], a[href^="/urun"], a[href^="/hakkinda"], header, footer').count(), 0, 'No old storefront links, header or footer on home');
+      assert.equal(await target.getByRole('heading', { level: 1 }).count(), 1, 'Single h1');
+      assert.equal(await target.getByRole('link', { name: 'Bu arada evinizi GümüşEV ile tarayın' }).getAttribute('href'), 'https://www.gumusev.org/tr');
+      assert.equal(await target.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'No horizontal overflow');
+      assert.equal(await target.evaluate(() => Array.from(document.querySelectorAll('[aria-hidden="true"] img')).every(image => image.alt === '' && image.complete && image.naturalWidth > 0)), true, 'Decorative backdrop images load with empty alt');
+    };
+    await test('Every close path shows the coming-soon page without the old storefront', async () => {
+      await page.goto(baseUrl + '/');
+      await dialog.waitFor({ state: 'visible' });
+      await close.click();
+      await dialog.waitFor({ state: 'hidden' });
+      await assertComingSoon(page);
+      await reopen.click();
+      await page.keyboard.press('Escape');
+      await dialog.waitFor({ state: 'hidden' });
+      await reopen.click();
+      await page.mouse.click(10, 10);
+      await dialog.waitFor({ state: 'hidden' });
+      await reopen.click();
+      await page.getByRole('button', { name: 'Kapat', exact: true }).click();
+      await dialog.waitFor({ state: 'hidden' });
+      await assertComingSoon(page);
+      await reopen.click();
+      await dialog.waitFor({ state: 'visible' });
+      await close.click();
+    });
+    await test('Explore lands focus on the prepared solution groups section', async () => {
+      await reopen.click();
+      await page.getByRole('button', { name: 'Çözüm gruplarını keşfet' }).click();
+      await dialog.waitFor({ state: 'hidden' });
+      await page.waitForFunction(() => document.activeElement.id === 'cozum-seckisi');
+      assert.equal(await page.locator('#cozum-seckisi h2').textContent(), 'Hazırlanan çözüm grupları');
+      assert.equal(await page.locator('#cozum-seckisi').isVisible(), true);
+    });
+    await test('Category and product pages keep their content, header and footer, without the popup', async () => {
+      const referral = await page.goto(baseUrl + '/urun/non-slip-bath-mat?source=gumusev');
+      assert.equal(referral.status(), 200);
+      assert.equal(await page.locator('#investor-intro').count(), 0);
+      assert.equal(await page.getByRole('heading', { level: 1 }).textContent(), 'Kaymaz Banyo Paspası');
+      assert.equal(await page.locator('header').count(), 1);
+      assert.equal(await page.locator('footer').count(), 1);
+      const category = await page.goto(baseUrl + '/kategori/banyo-guvenligi');
+      assert.equal(category.status(), 200);
+      assert.equal(await page.locator('#investor-intro').count(), 0);
+      assert.equal(await page.locator('header nav a[href="/hakkinda"]').count(), 1);
+    });
+    await test('Home at 1440, 390 and 320 has no overflow with the popup closed', async () => {
+      for (const [width, height] of [[1440, 900], [390, 844], [320, 568]]) {
+        const sizePage = await (await newContext({ viewport: { width, height } })).newPage();
+        await sizePage.goto(baseUrl + '/');
+        await sizePage.locator('#investor-intro').waitFor({ state: 'visible' });
+        await sizePage.getByRole('button', { name: 'Tanıtımı kapat' }).click();
+        await sizePage.locator('#investor-intro').waitFor({ state: 'hidden' });
+        await assertComingSoon(sizePage);
+        if (width === 320) assert.equal(await sizePage.evaluate(() => { const tops = Array.from(document.querySelectorAll('#cozum-seckisi li')).map(item => Math.round(item.getBoundingClientRect().top)); return new Set(tops).size === tops.length; }), true, 'Cards stack at 320');
+        await sizePage.context().close();
+      }
+    });
+    await test('Reduced motion removes every animation on the coming-soon page', async () => {
+      const calm = await newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
+      const calmPage = await calm.newPage();
+      await calmPage.goto(baseUrl + '/');
+      await calmPage.locator('#investor-intro').waitFor({ state: 'visible' });
+      await calmPage.getByRole('button', { name: 'Tanıtımı kapat' }).click();
+      await calmPage.locator('#investor-intro').waitFor({ state: 'hidden' });
+      assert.equal(await calmPage.evaluate(() => Array.from(document.querySelectorAll('main *, main *::after, main *::before')).filter(element => !element.closest('dialog')).every(element => getComputedStyle(element).animationName === 'none')), true);
+      assert.equal(await calmPage.evaluate(() => Array.from(document.querySelectorAll('#cozum-seckisi li')).every(element => getComputedStyle(element).opacity === '1')), true);
+      await calm.close();
     });
     await test('Full page section-link load also opens directly', async () => {
       await page.goto(baseUrl + '/#cozum-seckisi');
@@ -170,7 +248,7 @@ async function test(name, fn) {
       assert.equal(await mobilePage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
       await checkCardLabels(mobilePage);
       await mobilePage.locator('dialog').evaluate(element => element.scrollTop = element.scrollHeight);
-      await mobilePage.getByRole('button', { name: 'Siteyi incele' }).click();
+      await mobilePage.getByRole('button', { name: 'Kapat', exact: true }).click();
       assert.equal(await mobilePage.locator('dialog').evaluate(element => element.open), false);
     });
     await test('Restricted storage does not break intro', async () => {
